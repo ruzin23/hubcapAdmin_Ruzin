@@ -6,6 +6,10 @@ import {UserService} from '../../../_core/services/user.service';
 import {CONSTANTS} from '../../../_shared/CONSTANTS';
 import {RegisterCredentials} from '../../../_shared/interfaces/credentials.interface';
 import {Utilities} from '../../../_shared/utilities';
+import Swal from 'sweetalert2'
+
+// CommonJS
+
 
 @Component({
     selector: 'app-auth-register',
@@ -66,7 +70,7 @@ export class RegisterComponent implements OnInit {
     ngOnInit(): void {
     }
 
-    submitForm(): void {
+    submitForm(): string {
         this.isSubmitting = true;
         this.errors = {errors: {}};
 
@@ -87,9 +91,9 @@ export class RegisterComponent implements OnInit {
             const credentials: RegisterCredentials = {
                 firstName: this.registerForm.get('firstName').value,
                 lastName: this.registerForm.get('lastName').value,
-                email: this.registerForm.get('email').value,
-                password: this.registerForm.get('password').value,
-                registryCode: this.registerForm.get('registryCode').value
+                userName: this.registerForm.get('email').value,
+                password: this.registerForm.get('password').value
+                // registryCode: this.registerForm.get('registryCode').value
             };
 
             console.log('CREDS: ', credentials);
@@ -98,18 +102,20 @@ export class RegisterComponent implements OnInit {
                 user => {
                     console.log('NEW User. Redirecting to login');
                     this.isSubmitting = false;
-                    alert('You have successfully been registered. Please login to access your account.');
-                    this.router.navigateByUrl('/login');
+                    const text = 'good job! ' + user.name;
+                    Swal.fire(text, 'Your car is about to get so wet..', 'success');
+                     this.router.navigateByUrl('/login');
 
                 },
                 err => {
                     console.log('ERROR: ', err);
                     this.errors = err;
                     this.isSubmitting = false;
-                    alert('Unable to register. Please try again.');
+                    Swal.fire('Unable to register. Please try again.', 'user fucking exists you piece of shit', 'error');
                     this.router.navigateByUrl('/register');
                 }
             );
         }
     }
 }
+

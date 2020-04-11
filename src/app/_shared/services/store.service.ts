@@ -12,6 +12,8 @@ import {pluck} from 'rxjs/operators';
 import {ApiService} from '../../_core/services/api.service';
 import {environment} from '../../../environments/environment';
 import {CONSTANTS} from '../CONSTANTS';
+import {HoursOfOperation} from '../models/hours-of-operation.model';
+import {ExceptionFormComponent} from '../../components/store-manager/components/exceptions-manager/exception-form/exception-form.component';
 
 @Injectable({
     providedIn: 'root'
@@ -26,6 +28,7 @@ export class StoreService {
         private readonly http: HttpClient,
         private readonly carwashService: CarwashService,
         private readonly apiService: ApiService,
+
     ) {
         this.loadStore();
     }
@@ -61,7 +64,7 @@ export class StoreService {
     }
 
     public getHoursExceptions(): Observable<HoursException[]> {
-        return this.storeSubject.pipe(pluck('hoursOfOperation', 'hoursExceptions'));
+        return this.storeSubject.pipe(pluck('hoursOfOperation','hoursExceptions'));
     }
 
     public getForm(): FormGroup {
@@ -107,7 +110,7 @@ export class StoreService {
     /* Used for NEW stores*/
     public createStore(storeForm: FormGroup): Promise<boolean> {
 
-        const addressCoordinates = new Map<string, string>();
+
 
         // Create address string for Geocode API call
         const fullAddressQuery = (
@@ -132,8 +135,9 @@ export class StoreService {
                     // Convert lat & lng to CarwashCoordinates
                     console.log(geoResponse);
 
-                    addressCoordinates.set('lat', geoResponse.results[0].geometry.location.lat);
-                    addressCoordinates.set('lng', geoResponse.results[0].geometry.location.lng);
+                    let addressCoordinates = new Map();
+                    addressCoordinates.set("lat", geoResponse.results[0].geometry.location.lat);
+                    addressCoordinates.set("lng", geoResponse.results[0].geometry.location.lng);
                     // Create new store object to be pushed to backend
 
                     const newAddress = new Address(
@@ -143,6 +147,10 @@ export class StoreService {
                         storeForm.get('zipcode').value,
                     );
 
+
+
+                const hoursOfOperation = new HoursOfOperation(storeForm.get('storeHours').value, this.storeSubject.getValue().hoursOfOperation.hoursExceptions);
+
                     const newStore = new Store(
                         null,
                         storeForm.get('name').value,
@@ -150,7 +158,7 @@ export class StoreService {
                         newAddress,
                         storeForm.get('phoneNumber').value,
                         addressCoordinates,
-                        storeForm.get('storeHours').value,
+                        hoursOfOperation,
                         storeForm.get('email').value,
                         storeForm.get('website').value,
                     );

@@ -6,13 +6,13 @@ export class Address {
         city: '',
         state: null,
         street: '',
-        zipcode: ''
+        zipCode: ''
     };
 
     constructor(private _city: string,
                 public state: STATES,
                 private _street: string,
-                private _zipcode: string) {}
+                private zipCode: string) {}
 
     get street(): string {
         return this._street;
@@ -23,11 +23,11 @@ export class Address {
     }
 
     get zipcode(): string {
-        return this._zipcode;
+        return this.zipCode;
     }
 
     set zipcode(value: string) {
-        this._zipcode = value;
+        this.zipCode = value;
     }
 
     get city(): string {

@@ -143,7 +143,7 @@ export class NavbarComponent implements OnInit {
         httpHeaders.set('Authorization', CONSTANTS.TOKEN_KEY_NAME + ' ' + this.userService.getToken()); // { Authorization: Bearer Token [TOKEN] }
 
         this.userService.purgeAuth();
-        this.apiService.post(environment.logout_url, new HttpParams(), httpHeaders);
+        this.apiService.post(environment.logout_url, new HttpParams(), httpHeaders,null);
         // this.router.navigateByUrl('/login')
     }
 }

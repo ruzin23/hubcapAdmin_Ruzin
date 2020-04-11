@@ -8,7 +8,7 @@ export class User {
         email: '',
         password: '',
         role: null,
-        token: '',
+        token : '',
         phoneNumber: ''
     };
 

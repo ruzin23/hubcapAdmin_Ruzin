@@ -8,6 +8,7 @@ export interface PackageObject {
     carWashId: string,
     package: Package,
     packageId?: string
+
 }
 
 export interface PackageArrayObject {

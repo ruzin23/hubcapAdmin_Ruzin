@@ -1,6 +1,6 @@
 import {Injectable} from '@angular/core';
 import {Observable, of, throwError} from 'rxjs';
-import {HttpClient, HttpHeaders, HttpParams} from '@angular/common/http';
+import {HttpClient, HttpHeaders, HttpParams, HttpResponse} from '@angular/common/http';
 import {ReplaySubject} from 'rxjs/ReplaySubject';
 import 'rxjs/add/operator/map';
 import 'rxjs/add/operator/catch';
@@ -17,6 +17,7 @@ import {ROLE} from '../../_shared/enums/ROLE';
 import {RouteInfo} from '../interfaces/route-info.interface';
 import {map} from 'rxjs/operators';
 import {LoginCredentials, RegisterCredentials} from '../../_shared/interfaces/credentials.interface';
+import {Routes, RouterModule, Router} from '@angular/router';
 
 
 @Injectable({
@@ -33,27 +34,46 @@ export class UserService {
         private readonly apiService: ApiService,
         private readonly http: HttpClient,
         private readonly jwtService: JwtService,
+        private readonly router: Router,
     ) {
         console.log('Init User Service');
     }
 
     // Verify JWT in localstorage with server & load user's info.
     // This runs once on application startup.
-    public populate(): void {
+    public populate(): void  {
         // If JWT detected, attempt to get & store user's info
-        if (this.jwtService.getToken()) {
-            this.apiService.get(environment.register_url, new HttpParams(), new HttpHeaders().set('Authorization', this.jwtService.getToken()))
-                .subscribe(
+
+        if ((this.jwtService.getToken()) && (this.jwtService.getTrimToken() !== undefined)) {
+            // this is getting user object   (should use users url)
+            console.log('get token method called while attempting to populate = ' + this.jwtService.getToken());
+            const header = new HttpHeaders({'Content-Type': CONSTANTS.DEFAULT_CONTENT_TYPE, 'Authorization': this.jwtService.getToken(), 'Accept': '*', 'Access-Control-Allow-Origin': '*'});
+           //  header.append('Content-Type', CONSTANTS.DEFAULT_CONTENT_TYPE);
+           //  header.append('Authorization', this.jwtService.getToken());
+           //  header.append('Accept', CONSTANTS.DEFAULT_CONTENT_TYPE);
+           //  header.append('Access-Control-Allow-Origin', '*');
+
+            this.apiService.postNoResponse(environment.user_sign_in_url, header).subscribe(
+
                     data => {
-                        console.log('User Valid, Starting App');
-                        this.setAuth(data);
+                        const body = data.body;
+                        // this.setAuth(data.adminUser);
+                        console.log( 'The data here = ' + body.token);
+                        console.log( 'The data here = ' + data.status);
+                        console.log( 'The data here = ' + body.Authority);
+                        const recievedUser  = new User(body.user.firstName, body.user.lastName, body.user.userName,'something', ROLE.FULL_ADMIN, this.jwtService.getTrimToken(), '631-965-6774');
+                        console.log(recievedUser);
+                        this.setAuth(recievedUser);
                     },
-                    err => this.purgeAuth()
+                    err => {console.log('error processing the call popoulate')
+                          this.purgeAuth()
+                       }
+
                 );
         } else {
             // Remove any potential remnants of previous auth states
             console.log('No token detected. Purging Auth');
-            this.purgeAuth();
+                this.purgeAuth();
         }
     }
 
@@ -65,6 +85,10 @@ export class UserService {
         // Set isAuthenticated to true
         this.isAuthenticatedSubject.next(true);
     }
+
+
+
+
 
     public get currentUser(): Observable<User> {
         return this._currentUser;
@@ -86,69 +110,87 @@ export class UserService {
         this.currentUserSubject.next(User.EMPTY_MODEL);
         // Set auth status to false
         this.isAuthenticatedSubject.next(false);
+
+        this.router.navigateByUrl('/login');
     }
 
     // WARNING: This method contains test code -- NOT FINAL
+
+    // this method will post to sign up the user taking in credentials from the form
     public attemptRegistryAuth(credentials: RegisterCredentials) {
         // Delete or comment out when testing real API calls
-        return this.fakeRegisterResponse(credentials).pipe(
-            map(user => {
-                if (user.token) {
-                    this.setAuth(user);
-                    return user;
-                } else {
-                    console.log('Auth attempt failure');
-                    console.log('Throwing error');
-                    throw throwError(new Error('Invalid Registry'));
-                }
-            })
-        );
+        // return this.fakeRegisterResponse(credentials).pipe(
+        //     map(user => {
+        //         if (user.token) {
+        //             this.setAuth(user);
+        //             return user;
+        //         } else {
+        //             console.log('Auth attempt failure');
+        //             console.log('Throwing error');
+        //             throw throwError(new Error('Invalid Registry'));
+        //         }
+        //     })
+        // );
 
         // Uncomment this to test API call for LOGIN
-/*        const httpHeaders = new HttpHeaders();
-        httpHeaders.set('Content-Type', CONSTANTS.DEFAULT_CONTENT_TYPE);
-        httpHeaders.set('Authorization', CONSTANTS.TOKEN_KEY_NAME + ' ' + this.getToken()); // { Authorization: Bearer Token [TOKEN] }
-
-        return this.apiService.post(environment.register_url, new HttpParams(), new HttpHeaders(), {credentials}).pipe(
+       const httpHeaders = new HttpHeaders();
+       httpHeaders.set('Content-Type', 'application/json');
+       // httpHeaders.set('Accept', CONSTANTS.DEFAULT_CONTENT_TYPE);
+        httpHeaders.set('Access-Control-Allow-Origin', '*');
+        return this.apiService.post1(environment.register_url, credentials, httpHeaders).pipe(
             map(
                 data => {
-                    this.setAuth(data.adminUser);
-                    return data;
+                    console.log('the attemptregister 1 call is working');
+                    const body = data.body;
+                    console.log('the attempt call is working');
+                    console.log('the body ' + body);
+                    console.log('the body.resp' + body.data);
+                   // this.setAuth(data.adminUser);
+                    return body;
                 }
             )
-        );*/
+        );
     }
 
     // WARNING: This method contains test code -- NOT FINAL
     public attemptLoginAuth(credentials: LoginCredentials): Observable<User> {
 
         // Delete or comment out when testing real API calls
-        return this.fakeLoginResponse(credentials).pipe(
-            map(user => {
-                if (user.token) {
-                    this.setAuth(user);
-                    return user;
-                } else {
-                    console.log('Auth attempt failure');
-                    console.log('Throwing error');
-                    throw throwError(new Error('Invalid Login'));
-                }
-            })
-        );
+        // return this.fakeLoginResponse(credentials).pipe(
+        //     map(user => {
+        //         if (user.token) {
+        //             this.setAuth(user);
+        //             return user;
+        //         } else {
+        //             console.log('Auth attempt failure');
+        //             console.log('Throwing error');
+        //             throw throwError(new Error('Invalid Login'));
+        //         }
+        //     })
+        // );
 
         // Uncomment this to test API call for REGISTER
-/*        const httpHeaders = new HttpHeaders();
+        const httpHeaders = new HttpHeaders();
         httpHeaders.set('Content-Type', CONSTANTS.DEFAULT_CONTENT_TYPE);
-        httpHeaders.set('Authorization', CONSTANTS.TOKEN_KEY_NAME + ' ' + this.getToken()); // { Authorization: Bearer Token [TOKEN] }
 
-        return this.apiService.post(environment.signIn_url, new HttpParams(), new HttpHeaders(), {credentials}).pipe(
+        httpHeaders.set('Authorization', this.jwtService.getToken()); // { Authorization: Bearer Token [TOKEN] }
+
+        return this.apiService.post1(environment.signIn_url, credentials, httpHeaders).pipe(
             map(
                 data => {
-                    this.setAuth(data.adminUser);
-                    return data;
+                     const body = data.body;
+                    // this.setAuth(data.adminUser);
+                    console.log( 'The data here = ' + body.token);
+                    console.log( 'The data here = ' + data.status);
+                    console.log( 'The data here = ' + body.Authority);
+                   // console.log(data.firstName);
+                    const recievedUser  = new User(body.firstName, body.lastName, body.userName,"something", ROLE.FULL_ADMIN, body.token, '631-965-6774');
+                    console.log(recievedUser);
+                    this.setAuth(recievedUser);
+                    return recievedUser;
                 }
             )
-        );*/
+        );
     }
 
     // TEST METHOD
@@ -178,17 +220,17 @@ export class UserService {
     // Update the user on the server (email, pass, etc)
     public update(user: User): Observable<User> {
         return this.apiService
-            .post(environment.assets_url_base + user.firstName + '-user-object.json', new HttpParams()).pipe( // TODO Look into this
+            .post1(environment.assets_url_base + user.firstName + '-user-object.json', user, new HttpHeaders()).pipe( // TODO Look into this
                 map(_user => {
                     // Update the currentUser observable
                     this.currentUserSubject.next(_user);
                     return _user;
+
                 }));
     }
 
     public getAllowedRoutes(): RouteInfo[] {
         const currentUserRole = this.currentUserSubject.getValue().role;
-
         if (currentUserRole !== ROLE.FIELD_WORKER) {
             return CONSTANTS.ADMIN_ROUTES.concat(CONSTANTS.BASE_ROUTES);
         } else if (currentUserRole === ROLE.FIELD_WORKER) {

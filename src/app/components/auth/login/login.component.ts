@@ -62,7 +62,7 @@ export class LoginComponent implements OnInit {
         } else if (this.loginForm.valid) {
 
             const credentials: LoginCredentials = {
-                email: this.loginForm.get('email').value,
+                userName: this.loginForm.get('email').value,
                 password: this.loginForm.get('password').value,
             };
 

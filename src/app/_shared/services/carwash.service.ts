@@ -21,6 +21,7 @@ import {
     PromotionObject,
     StoreObject
 } from '../interfaces/post.interface';
+import {JwtService} from '../../_core/services/jwt.service';
 
 @Injectable({
     providedIn: 'root'
@@ -33,7 +34,9 @@ export class CarwashService {
 
     constructor(private readonly http: HttpClient,
                 private readonly apiService: ApiService,
-                private readonly userService: UserService) {
+                private readonly userService: UserService,
+                private readonly jwtService: JwtService
+    ) {
     }
 
     /* ---------------- MAIN GET METHODS -----------------*/
@@ -89,17 +92,15 @@ export class CarwashService {
     /* STORE */
     public postNewStore(newStore: Store): Promise<any> {
         // Set HttpHeaders
-        const httpHeaders = new HttpHeaders();
-        httpHeaders.set('Content-Type', CONSTANTS.DEFAULT_CONTENT_TYPE);
-        httpHeaders.set('Authorization', CONSTANTS.TOKEN_KEY_NAME + ' ' + this.userService.getToken()); // { Authorization: Bearer Token [TOKEN] }
 
+        let httpHeaders = new HttpHeaders({'Content-Type': CONSTANTS.DEFAULT_CONTENT_TYPE, 'Authorization': this.jwtService.getToken(), 'Accept': '*'});
         const postObject: NewStoreObject = {
             userName: this.userService.getCurrentUserValue().email,
             store: newStore
         };
 
         // Make post and save new object on success
-        return this.apiService.post(environment.new_store_url, new HttpParams(), httpHeaders, postObject).pipe(take(1)).toPromise();
+        return this.apiService.post1(environment.new_store_url, postObject, httpHeaders).pipe(take(1)).toPromise();
     }
 
     public updateStore(updatedStore: Store): Promise<any> {

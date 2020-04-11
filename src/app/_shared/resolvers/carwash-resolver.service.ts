@@ -9,6 +9,9 @@ import {Injectable} from '@angular/core';
 import {DisplayPackageItem} from '../models/display-package-item.model';
 import {ApiService} from '../../_core/services/api.service';
 import {environment} from '../../../environments/environment';
+import {CONSTANTS} from '../CONSTANTS';
+import {HttpHeaders, HttpParams} from '@angular/common/http';
+import {JwtService} from '../../_core/services/jwt.service';
 
 @Injectable({
     providedIn: 'root',
@@ -21,7 +24,8 @@ export class CarwashResolverService implements Resolve<boolean> {
     constructor(
         private router: Router,
         private carwashService: CarwashService,
-        private apiService: ApiService
+        private apiService: ApiService,
+        private jwtService: JwtService
     ) {
     }
 
@@ -58,8 +62,12 @@ export class CarwashResolverService implements Resolve<boolean> {
 
     // Retrieve Carwash object from backend
     private fetchCarwash(): Observable<Carwash> {
-        return this.apiService.get<Carwash>(CarwashResolverService.carwashPath);
-        return of(null);
+        const httpHeaders = new HttpHeaders({'Content-Type': CONSTANTS.DEFAULT_CONTENT_TYPE, 'Authorization': this.jwtService.getToken(), 'Accept': '*'});
+        const businessId = '';
+        console.log('headers in fetchcarWasg methis before maing api call is ' + httpHeaders.keys());
+        console.log(('the jwt token in the fetchrequets comes out to be = ' + this.jwtService.getToken()))
+        return this.apiService.get<Carwash>(CarwashResolverService.carwashPath, new HttpParams().set('businessId', businessId), new HttpHeaders({'Content-Type': CONSTANTS.DEFAULT_CONTENT_TYPE, 'Authorization': this.jwtService.getToken(), 'Accept': '*'}));
+        // return of(null);
     }
 
     // Retrieve all package items from assets

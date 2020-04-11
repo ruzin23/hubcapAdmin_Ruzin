@@ -10,7 +10,21 @@ export class JwtService {
     constructor(private readonly cookieService: CookieService) {}
 
     getToken(): string {
-        return this.cookieService.get(CONSTANTS.TOKEN_KEY_NAME); // change to cookie
+        
+            
+            if (this.cookieService.get(CONSTANTS.TOKEN_KEY_NAME) !== undefined)
+            
+            return 'Bearer ' + this.cookieService.get(CONSTANTS.TOKEN_KEY_NAME);  // change to cookie
+          
+          else {
+              
+              return this.cookieService.get(CONSTANTS.TOKEN_KEY_NAME);
+            }
+    
+    }
+
+    getTrimToken(): string {
+        return ( this.cookieService.get(CONSTANTS.TOKEN_KEY_NAME)); // change to cookie
     }
 
     saveToken(token: string) {

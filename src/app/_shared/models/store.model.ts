@@ -4,6 +4,8 @@ import {Rating} from './rating.model';
 import {CarwashCoordinates} from './carwash-coordinates.model';
 import {CARWASH_TYPE} from '../enums/CARWASH_TYPE.model';
 
+
+
 export class Store {
 
     public static EMPTY_MODEL = <Store>{
@@ -12,7 +14,7 @@ export class Store {
         type: null,
         address: Address.EMPTY_MODEL,
         phoneNumber: '',
-        coordinates: new Map<string, string>().set('lat', null).set('lng', null),
+        coordinates: new Map<string, string>(),
         hoursOfOperation: HoursOfOperation.EMPTY_MODEL,
         email: '',
         website: '',

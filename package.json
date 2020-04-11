@@ -56,7 +56,8 @@
     "symbol-observable": "^1.2.0",
     "typescript": "~3.5.3",
     "web-animations-js": "^2.3.2",
-    "zone.js": "^0.9.1"
+    "zone.js": "^0.9.1",
+    "sweetalert2": "^9.10.9"
   },
   "devDependencies": {
     "@angular-devkit/build-angular": "0.803.25",
