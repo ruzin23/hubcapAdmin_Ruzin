@@ -18,7 +18,8 @@ export interface PackageArrayObject {
 
 export interface DeletePackageObject {
     carWashId: string,
-    packageId: string
+    packageId: string,
+    type: string
 }
 
 export interface PromotionObject {

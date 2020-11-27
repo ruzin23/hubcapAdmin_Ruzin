@@ -2,6 +2,8 @@ import {DisplayPackageItem} from './display-package-item.model';
 import {VEHICLE_TYPE} from '../enums/VEHICLE_TYPE.model';
 import {SERVICE_TYPE} from '../enums/SERVICE_TYPE';
 import {PackageItem} from './package-item.model';
+import {Price} from './price.model';
+
 
 
 export class Package {
@@ -10,20 +12,22 @@ export class Package {
         id: null,
         name: '',
         type: SERVICE_TYPE.WASH,
-        oneTimePrices: new Map<VEHICLE_TYPE, number>().set(VEHICLE_TYPE.REGULAR, null).set(VEHICLE_TYPE.OVERSIZED, null),
+        oneTimePrices: Price.EMPTY_MODEL,
         packageItems: new Array<PackageItem>(),
         duration: null,
-        monthlyPrices: new Map<VEHICLE_TYPE, number>().set(VEHICLE_TYPE.REGULAR, null).set(VEHICLE_TYPE.OVERSIZED, null)
+        monthlyPrices: Price.EMPTY_MODEL
+
+        // set(VEHICLE_TYPE.REGULAR, null).set(VEHICLE_TYPE.OVERSIZED, null)
     };
 
     constructor(
         public id: string,
         public name: string,
         public type: SERVICE_TYPE,
-        public oneTimePrices: Map<VEHICLE_TYPE, number>,
+        public oneTimePrices: Price,
         public packageItems: PackageItem[],
         public duration?: number,
-        public monthlyPrices?: Map<VEHICLE_TYPE, number>) {
+        public monthlyPrices?: Price) {
     }
 
     public isMonthly(): boolean {

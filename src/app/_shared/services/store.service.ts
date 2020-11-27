@@ -228,6 +228,11 @@ export class StoreService {
                         storeForm.get('zipcode').value,
                     );
 
+                    let hoursOfOperation2 = new HoursOfOperation(storeForm.get('storeHours').value, this.storeSubject.getValue().hoursOfOperation.hoursExceptions);
+
+                     console.log('storeHours');
+                     console.log(hoursOfOperation2)
+
                     const updatedStore = new Store(
                         this.storeSubject.getValue().id,
                         storeForm.get('name').value,
@@ -235,7 +240,7 @@ export class StoreService {
                         newAddress,
                         storeForm.get('phoneNumber').value,
                         addressCoordinates,
-                        storeForm.get('storeHours').value,
+                        hoursOfOperation2,
                         storeForm.get('email').value,
                         storeForm.get('website').value,
                     );
@@ -293,7 +298,7 @@ export class StoreService {
                 ]
             ],
             state: [store.address.state, Validators.required],
-            zipcode: [store.address.zipcode,
+            zipcode: [store.address.zipCode,
                 [
                     Validators.required,
                     Validators.pattern(CONSTANTS.NUM_NON_NEG_WHOLE_VALIDATOR),

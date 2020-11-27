@@ -24,7 +24,7 @@ export class HoursOfOperation {
         public hoursExceptions: HoursException[]
     ) {}
 
-    private addStoreHours() {
+    public addStoreHours() {
         const hours = [];
         Object.keys(DAY).forEach(function (day) {
             const dayEnum: DAY = DAY[day];

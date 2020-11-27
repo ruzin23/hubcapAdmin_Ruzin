@@ -10,6 +10,7 @@ import {PackageItem} from '../models/package-item.model';
 import 'rxjs/operators/map';
 import {CONSTANTS} from '../CONSTANTS';
 import {MatSnackBar} from '@angular/material/snack-bar';
+import {Price} from '../models/price.model';
 
 @Injectable({
     providedIn: 'root',
@@ -140,8 +141,8 @@ export class PackageService {
 
     // Check whether monthly prices has any values
     public hasMonthly(): boolean {
-        console.log('Has monthly? ', this.packageSubject.getValue().monthlyPrices.get(VEHICLE_TYPE.REGULAR));
-        return !!(this.packageSubject.getValue().monthlyPrices.get(VEHICLE_TYPE.REGULAR) !== null || 0);
+        console.log('Has monthly? ', this.packageSubject.getValue().monthlyPrices.REGULAR);
+        return !!(this.packageSubject.getValue().monthlyPrices.REGULAR !== null || 0);
     }
 
     switchToMonthly() {
@@ -198,16 +199,14 @@ export class PackageService {
     createPackage(packageForm: FormGroup): Promise<boolean> {
 
         // Instantiate and initialize temp variables for One Time and Monthly price maps
-        const oneTimePrices = new Map<VEHICLE_TYPE, number>();
-        oneTimePrices.set(VEHICLE_TYPE.REGULAR, packageForm.get('pricingFormGroup.oneTimeRegularPrice').value);
-        oneTimePrices.set(VEHICLE_TYPE.OVERSIZED, packageForm.get('pricingFormGroup.oneTimeOverSizedPrice').value);
+        const oneTimePrices = new Price(packageForm.get('pricingFormGroup.oneTimeRegularPrice').value, packageForm.get('pricingFormGroup.oneTimeOverSizedPrice').value);
 
-        const monthlyPrices = new Map<VEHICLE_TYPE, number>();
-        monthlyPrices.set(VEHICLE_TYPE.REGULAR, packageForm.get('pricingFormGroup.monthlyRegularPrice').value);
-        monthlyPrices.set(VEHICLE_TYPE.OVERSIZED, packageForm.get('pricingFormGroup.monthlyOverSizedPrice').value);
+        const monthlyPrices = new Price(packageForm.get('pricingFormGroup.monthlyRegularPrice').value, packageForm.get('pricingFormGroup.monthlyOverSizedPrice').value);
 
+        console.log('the map for price onetime ============================================================')
+        console.log(oneTimePrices)
         const packageItems = new Array<PackageItem>();
-        console.log('Package Items from form: ', packageForm.get('packageItems').value);
+       // console.log('Package Items from form: ', packageForm.get('packageItemsFormGroup.packageItems').value);
 
         // Instantiate new Package
         const newPackage = new Package(
@@ -220,13 +219,46 @@ export class PackageService {
             monthlyPrices,
         );
 
+
+        const mapToObj = m => {
+            return Array.from(m).reduce((obj, [key, value]) => {
+                obj[key] = value;
+                return obj;
+            }, {});
+        };
+
+        console.log('this is where the fucntion is being called ------------------------')
+        console.log (mapToObj(oneTimePrices)); // '
+
+
+        let packageJson: object = {
+            id: newPackage.id,
+            name: newPackage.name,
+            type: newPackage.type,
+            oneTimePrices: mapToObj(newPackage.oneTimePrices),
+            packageItems: newPackage.packageItems,
+            duration: newPackage.duration,
+            monthlyPrices: mapToObj(newPackage.monthlyPrices)
+        }
+
+        console.log ('the somefun object is below')
+        console.log(packageJson)
+
         console.log('Creating new package: ', newPackage);
 
-        return this.carwashService.postNewPackage(newPackage).then((res: Package) => {
+
+
+        return this.carwashService.postNewPackage(newPackage).then((res: any) => {
             console.log('Package Post SUCCESS', res);
 
             // Set if of new promo
             newPackage.id = res.id;
+            console.log('th epackage id from response  -------------------------')
+            console.log(res.body.id)
+            console.log('response body below')
+            console.log(res.body)
+            console.log('response')
+            console.log(res)
 
             this.packageSubject.next(newPackage);
 
@@ -250,13 +282,9 @@ export class PackageService {
     updatePackage(packageForm: FormGroup): Promise<boolean> {
 
         // Instantiate and initialize temp variables for One Time and Monthly price maps
-        const oneTimePrices = new Map<VEHICLE_TYPE, number>();
-        oneTimePrices.set(VEHICLE_TYPE.REGULAR, packageForm.get('pricingFormGroup.oneTimeRegularPrice').value);
-        oneTimePrices.set(VEHICLE_TYPE.OVERSIZED, packageForm.get('pricingFormGroup.oneTimeOverSizedPrice').value);
+        const oneTimePrices = new Price(packageForm.get('pricingFormGroup.oneTimeRegularPrice').value, packageForm.get('pricingFormGroup.oneTimeOverSizedPrice').value);
 
-        const monthlyPrices = new Map<VEHICLE_TYPE, number>();
-        monthlyPrices.set(VEHICLE_TYPE.REGULAR, packageForm.get('pricingFormGroup.monthlyRegularPrice').value);
-        monthlyPrices.set(VEHICLE_TYPE.OVERSIZED, packageForm.get('pricingFormGroup.monthlyOverSizedPrice').value);
+        const monthlyPrices = new Price(packageForm.get('pricingFormGroup.monthlyRegularPrice').value, packageForm.get('pricingFormGroup.monthlyOverSizedPrice').value);
 
         // Instantiate new Package
         const updatedPackage = new Package(
@@ -269,12 +297,38 @@ export class PackageService {
             monthlyPrices,
         );
 
+        const mapToObj = m => {
+            return Array.from(m).reduce((obj, [key, value]) => {
+                obj[key] = value;
+                return obj;
+            }, {});
+        };
+
+        console.log('this is where the fucntion is being called ------------------------')
+        console.log (mapToObj(oneTimePrices)); // '
+
+
+        let updatedPackageJson: object = {
+            id: updatedPackage.id,
+            name: updatedPackage.name,
+            type: updatedPackage.type,
+            oneTimePrices: updatedPackage.oneTimePrices,
+            packageItems: updatedPackage.packageItems,
+            duration: updatedPackage.duration,
+            monthlyPrices: mapToObj(updatedPackage.monthlyPrices)
+        }
+
         console.log('Creating new package: ', updatedPackage);
+
+
 
         return this.carwashService.updatePackage(updatedPackage).then((res: Package) => {
             console.log('Package Post SUCCESS', res);
 
+
             // Update behavior subject
+
+
             this.packageSubject.next(updatedPackage);
 
             const currentPackagesArrayValue = this.packageArraySubject.getValue();
@@ -282,11 +336,12 @@ export class PackageService {
             // Update package array with newly updated package
             currentPackagesArrayValue[this.currentPackageIndex] = updatedPackage;
 
+           // window.location.reload()
             // Update behavior subject with latest package array value
-            this.packageArraySubject.next(currentPackagesArrayValue);
+           this.packageArraySubject.next(currentPackagesArrayValue);
 
             // Update carwash object
-            this.carwashService.cachePackages([...currentPackagesArrayValue, updatedPackage], updatedPackage.type);
+           this.carwashService.cachePackages(currentPackagesArrayValue, updatedPackage.type);
 
             return true;
 
@@ -306,7 +361,7 @@ export class PackageService {
             this.packageArraySubject.next(updatedPackageArray);
 
             // Update carwash object
-            this.carwashService.cachePackages(updatedPackageArray, serviceType);
+           this.carwashService.cachePackages(updatedPackageArray, serviceType);
 
             return true;
         }).catch((reason) => {
@@ -323,7 +378,7 @@ export class PackageService {
             updatedPackageArray.some(
                 (_package, i) => {
                     if (_package.id === id) {
-                        return this.carwashService.deletePackage(id).then((result) => {
+                        return this.carwashService.deletePackage(id, serviceType).then((result) => {
                                 console.log('Package deletion SUCCESS: ', result);
                                 updatedPackageArray.splice(i, 1);
 
